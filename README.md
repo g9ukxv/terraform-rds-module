@@ -18,7 +18,9 @@ terraform workspace list
 -- Select Workspace
 --
 terraform workspace select mysql-eut
+
 terraform workspace select mysql-pt
+
 terraform workspace select mysql-pr
 
 -- Current Workspace you are in
