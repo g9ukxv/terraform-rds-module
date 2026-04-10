@@ -4,7 +4,9 @@ Terraform Code to implement existing RDS Instance
 -- Create Workspace
 --
 terraform workspace new mysql-eut
+
 terraform workspace new mysql-pt
+
 terraform workspace new mysql-pr
 
 terraform workspace new psql-eut
