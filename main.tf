@@ -54,8 +54,14 @@ data "aws_vpc" "main" {
 ###############################################################
 
 locals {
-  mysql_parameter_group_name = "el2-mysql-8-4"
-  psql_parameter_group_name  = "el2-psql-17"
+  # Resolves to the one parameter group that was actually created
+  # based on the combination of db_engine + environment_tier
+  active_parameter_group_name = (
+    var.db_engine == "mysql" && var.environment_tier == "non-prod" ? aws_db_parameter_group.mysql_non_prod[0].name :
+    var.db_engine == "mysql" && var.environment_tier == "prod"     ? aws_db_parameter_group.mysql_prod[0].name :
+    var.db_engine == "postgres" && var.environment_tier == "non-prod" ? aws_db_parameter_group.psql_non_prod[0].name :
+    aws_db_parameter_group.psql_prod[0].name
+  )
 }
 
 ###############################################################
@@ -107,7 +113,7 @@ module "mysql_database" {
   enabled_cloudwatch_logs_exports       = var.enabled_cloudwatch_logs_exports
 
   # Parameters
-  parameter_group_name = local.mysql_parameter_group_name
+  parameter_group_name = local.active_parameter_group_name
 
   tags = {
     Database    = var.db_key
@@ -163,7 +169,7 @@ module "psql_database" {
   enabled_cloudwatch_logs_exports       = var.enabled_cloudwatch_logs_exports
 
   # Parameters
-  parameter_group_name = local.psql_parameter_group_name
+  parameter_group_name = local.active_parameter_group_name
 
   tags = {
     Database    = var.db_key

@@ -41,6 +41,15 @@ variable "db_engine" {
   }
 }
 
+variable "environment_tier" {
+  description = "Environment tier: 'non-prod' or 'prod'. Controls which parameter group is created."
+  type        = string
+  validation {
+    condition     = contains(["non-prod", "prod"], var.environment_tier)
+    error_message = "environment_tier must be either 'non-prod' or 'prod'."
+  }
+}
+
 ###############################################################
 # Flat per-database variables (one DB per tfvars + workspace)
 ###############################################################
