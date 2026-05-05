@@ -1,17 +1,23 @@
 ###############################################################
-# Parameter Groups — one created per engine + environment tier
+# Parameter Groups — one created per engine + environment tier + identifier
 #
 # Conditions:
-#   mysql-non-prod  → db_engine=mysql    + environment_tier=non-prod
-#   mysql-prod      → db_engine=mysql    + environment_tier=prod
-#   psql-non-prod   → db_engine=postgres + environment_tier=non-prod
-#   psql-prod       → db_engine=postgres + environment_tier=prod
+#   mysql-non-prod           → db_engine=mysql    + environment_tier=non-prod
+#   mysql-prod               → db_engine=mysql    + environment_tier=prod
+#   psql-non-prod (3 groups) → db_engine=postgres + environment_tier=non-prod + identifier match
+#   psql-prod     (3 groups) → db_engine=postgres + environment_tier=prod     + identifier match
 #
-# Import commands:
+# Import commands (non-prod):
+#   terraform import -var-file="..." "aws_db_parameter_group.elis-postgres-pg-15-no-md5[0]"      elis-postgres-pg-15-no-md5
+#   terraform import -var-file="..." "aws_db_parameter_group.elis-postgres-pg-15-lrg-wal-keep[0]" elis-postgres-pg-15-lrg-wal-keep
+#   terraform import -var-file="..." "aws_db_parameter_group.elis-postgres-pg-15[0]"             elis-postgres-pg-15
+# Import commands (prod):
+#   terraform import -var-file="..." "aws_db_parameter_group.elis-default-postgres-pg-15[0]"     elis-default-postgres-pg-15
+#   terraform import -var-file="..." "aws_db_parameter_group.elis-postgres15-small[0]"           elis-postgres15-small
+#   terraform import -var-file="..." "aws_db_parameter_group.elis-postgres-15-for-replication[0]" elis-postgres-15-for-replication
+# Import commands (mysql):
 #   terraform import -var-file="..." "aws_db_parameter_group.mysql_non_prod[0]" el2-mysql-8-4-non-prod
 #   terraform import -var-file="..." "aws_db_parameter_group.mysql_prod[0]"     el2-mysql-8-4-prod
-#   terraform import -var-file="..." "aws_db_parameter_group.psql_non_prod[0]"  el2-psql-17-non-prod
-#   terraform import -var-file="..." "aws_db_parameter_group.psql_prod[0]"      el2-psql-17-prod
 ###############################################################
 
 # ── MySQL Non-Prod ────────────────────────────────────────────
@@ -95,8 +101,19 @@ resource "aws_db_parameter_group" "mysql_prod" {
 }
 
 # ── PostgreSQL Non-Prod ───────────────────────────────────────
+
+## elis-postgres-pg-15-no-md5
+# Used by: elis-ms-db-sky2, elis-ms-db-pt, elis-ms-db-dt, elis-ms-db-trn, elis-ms-db-trn2,
+#          elis-ms-db-eut, elis-ms-db-demosith, el2-trn-idb2, el2-trn2-idb2, el2-sky-idb2, el2-sky2-idb2,
+#          el2-sky-mic5, el2-pt-mic5, el2-pt-idb2, el2-eut-mic5, el2-eut-idb2,
+#          el2-dt-mic1, sonarpostgresql, ms-reg
 resource "aws_db_parameter_group" "elis-postgres-pg-15-no-md5" {
-  count = var.db_engine == "postgres" && var.environment_tier == "non-prod" ? 1 : 0
+  count = var.db_engine == "postgres" && var.environment_tier == "non-prod" && contains([
+    "elis-ms-db-sky2", "elis-ms-db-pt", "elis-ms-db-dt", "elis-ms-db-trn", "elis-ms-db-trn2",
+    "elis-ms-db-eut", "elis-ms-db-demosith", "el2-trn-idb2", "el2-trn2-idb2", "el2-sky-idb2", "el2-sky2-idb2",
+    "el2-sky-mic5", "el2-pt-mic5", "el2-pt-idb2", "el2-eut-mic5", "el2-eut-idb2",
+    "el2-dt-mic1", "sonarpostgresql", "ms-reg"
+  ], var.identifier) ? 1 : 0
 
   name        = "elis-postgres-pg-15-no-md5"
   family      = "postgres17"
@@ -179,8 +196,12 @@ resource "aws_db_parameter_group" "elis-postgres-pg-15-no-md5" {
   }
 }
 
+## elis-postgres-pg-15-lrg-wal-keep
+# Used by: elis-ms-db-sky
 resource "aws_db_parameter_group" "elis-postgres-pg-15-lrg-wal-keep" {
-  count = var.db_engine == "postgres" && var.environment_tier == "non-prod" ? 1 : 0
+  count = var.db_engine == "postgres" && var.environment_tier == "non-prod" && contains([
+    "elis-ms-db-sky"
+  ], var.identifier) ? 1 : 0
 
   name        = "elis-postgres-pg-15-lrg-wal-keep"
   family      = "postgres17"
@@ -263,8 +284,12 @@ resource "aws_db_parameter_group" "elis-postgres-pg-15-lrg-wal-keep" {
   }
 }
 
+## elis-postgres-pg-15
+# Used by: el2-sky2-idb4
 resource "aws_db_parameter_group" "elis-postgres-pg-15" {
-  count = var.db_engine == "postgres" && var.environment_tier == "non-prod" ? 1 : 0
+  count = var.db_engine == "postgres" && var.environment_tier == "non-prod" && contains([
+    "el2-sky2-idb4"
+  ], var.identifier) ? 1 : 0
 
   name        = "elis-postgres-pg-15"
   family      = "postgres17"
